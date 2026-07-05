@@ -1,4 +1,5 @@
 import 'package:go_router/go_router.dart';
+import 'package:todo_app/features/settings/settings_screen.dart';
 import '../../di/service_locator.dart';
 import '../../services/auth/auth_repository.dart';
 import '../../features/auth/login_screen.dart';
@@ -17,7 +18,8 @@ class AppRouter {
     ),
     redirect: (context, state) {
       final isLoggedIn = getIt<AuthRepository>().currentUser != null;
-      final isAuthRoute = state.matchedLocation == AppRoutes.login ||
+      final isAuthRoute =
+          state.matchedLocation == AppRoutes.login ||
           state.matchedLocation == AppRoutes.register;
 
       if (!isLoggedIn && !isAuthRoute) return AppRoutes.login;
@@ -36,6 +38,10 @@ class AppRouter {
       GoRoute(
         path: AppRoutes.taskList,
         builder: (context, state) => const TaskListScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.settings,
+        builder: (context, state) => const SettingsScreen(),
       ),
     ],
   );

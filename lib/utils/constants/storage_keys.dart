@@ -1,4 +1,7 @@
 class StorageKeys {
-  static const String darkMode = 'dark_mode';
-  static const String biometricsEnabled = 'biometrics_enabled';
+  StorageKeys._();
+
+  static const String isDarkMode = 'is_dark_mode';
+  static const String accentThemeName = 'accent_theme_name';
+  static const String isBiometricLockEnabled = 'is_biometric_lock_enabled';
 }

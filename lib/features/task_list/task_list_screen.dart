@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:todo_app/utils/routes/app_routes.dart';
 import '../../di/service_locator.dart';
 import '../../utils/theme/app_colors.dart';
 import 'task_list_viewmodel.dart';
@@ -40,14 +42,20 @@ class _TaskListView extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w500,
-                      color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                      color: isDark
+                          ? AppColors.darkTextPrimary
+                          : AppColors.lightTextPrimary,
                     ),
                   ),
                   IconButton(
-                    icon: Icon(Icons.settings_outlined,
-                        color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
+                    icon: Icon(
+                      Icons.settings_outlined,
+                      color: isDark
+                          ? AppColors.darkTextSecondary
+                          : AppColors.lightTextSecondary,
+                    ),
                     onPressed: () {
-                      // context.push(AppRoutes.settings) once settings screen exists
+                      context.push(AppRoutes.settings);
                     },
                   ),
                 ],
@@ -59,17 +67,29 @@ class _TaskListView extends StatelessWidget {
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 children: [
-                  _FilterChip(label: 'All', selected: viewModel.filter == EnergyFilter.all,
-                      onTap: () => viewModel.setFilter(EnergyFilter.all)),
+                  _FilterChip(
+                    label: 'All',
+                    selected: viewModel.filter == EnergyFilter.all,
+                    onTap: () => viewModel.setFilter(EnergyFilter.all),
+                  ),
                   const SizedBox(width: 8),
-                  _FilterChip(label: 'Quick win', selected: viewModel.filter == EnergyFilter.quickWin,
-                      onTap: () => viewModel.setFilter(EnergyFilter.quickWin)),
+                  _FilterChip(
+                    label: 'Quick win',
+                    selected: viewModel.filter == EnergyFilter.quickWin,
+                    onTap: () => viewModel.setFilter(EnergyFilter.quickWin),
+                  ),
                   const SizedBox(width: 8),
-                  _FilterChip(label: 'Deep focus', selected: viewModel.filter == EnergyFilter.deepFocus,
-                      onTap: () => viewModel.setFilter(EnergyFilter.deepFocus)),
+                  _FilterChip(
+                    label: 'Deep focus',
+                    selected: viewModel.filter == EnergyFilter.deepFocus,
+                    onTap: () => viewModel.setFilter(EnergyFilter.deepFocus),
+                  ),
                   const SizedBox(width: 8),
-                  _FilterChip(label: 'Low effort', selected: viewModel.filter == EnergyFilter.lowEffort,
-                      onTap: () => viewModel.setFilter(EnergyFilter.lowEffort)),
+                  _FilterChip(
+                    label: 'Low effort',
+                    selected: viewModel.filter == EnergyFilter.lowEffort,
+                    onTap: () => viewModel.setFilter(EnergyFilter.lowEffort),
+                  ),
                 ],
               ),
             ),
@@ -81,7 +101,9 @@ class _TaskListView extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 11,
                   letterSpacing: 0.5,
-                  color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+                  color: isDark
+                      ? AppColors.darkTextMuted
+                      : AppColors.lightTextMuted,
                 ),
               ),
             ),
@@ -124,7 +146,11 @@ class _FilterChip extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
 
-  const _FilterChip({required this.label, required this.selected, required this.onTap});
+  const _FilterChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -151,7 +177,9 @@ class _FilterChip extends StatelessWidget {
               fontSize: 13,
               color: selected
                   ? Colors.white
-                  : (isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
+                  : (isDark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.lightTextSecondary),
             ),
           ),
         ),
@@ -194,7 +222,9 @@ class _TaskTile extends StatelessWidget {
               height: 22,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: isCompleted ? const Color(0xFF2B7A4B) : Colors.transparent,
+                color: isCompleted
+                    ? const Color(0xFF2B7A4B)
+                    : Colors.transparent,
                 border: Border.all(
                   color: isCompleted
                       ? const Color(0xFF2B7A4B)
@@ -218,8 +248,12 @@ class _TaskTile extends StatelessWidget {
                     fontSize: 14,
                     decoration: isCompleted ? TextDecoration.lineThrough : null,
                     color: isCompleted
-                        ? (isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted)
-                        : (isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary),
+                        ? (isDark
+                              ? AppColors.darkTextMuted
+                              : AppColors.lightTextMuted)
+                        : (isDark
+                              ? AppColors.darkTextPrimary
+                              : AppColors.lightTextPrimary),
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -227,27 +261,45 @@ class _TaskTile extends StatelessWidget {
                   children: [
                     if (energyLabel != null)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0xFFE8F5E9),
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: Text(energyLabel!,
-                            style: const TextStyle(fontSize: 11, color: Color(0xFF2E7D32))),
+                        child: Text(
+                          energyLabel!,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: Color(0xFF2E7D32),
+                          ),
+                        ),
                       ),
                     if (dueLabel != null) ...[
                       const SizedBox(width: 8),
-                      Text(dueLabel!,
-                          style: TextStyle(
-                              fontSize: 12,
-                              color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted)),
+                      Text(
+                        dueLabel!,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark
+                              ? AppColors.darkTextMuted
+                              : AppColors.lightTextMuted,
+                        ),
+                      ),
                     ],
                     if (isCompleted) ...[
                       const SizedBox(width: 8),
-                      Text('Completed',
-                          style: TextStyle(
-                              fontSize: 12,
-                              color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted)),
+                      Text(
+                        'Completed',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark
+                              ? AppColors.darkTextMuted
+                              : AppColors.lightTextMuted,
+                        ),
+                      ),
                     ],
                   ],
                 ),
