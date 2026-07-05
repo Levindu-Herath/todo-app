@@ -1,37 +1,40 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 
-import '../../models/task.dart';
-import '../../services/task/task_repository.dart';
+enum EnergyFilter { all, quickWin, deepFocus, lowEffort }
+
+class MockTask {
+  final String title;
+  final String? energyLabel;
+  final String? dueLabel;
+  final bool isCompleted;
+
+  MockTask({
+    required this.title,
+    this.energyLabel,
+    this.dueLabel,
+    this.isCompleted = false,
+  });
+}
 
 class TaskListViewModel extends ChangeNotifier {
-  TaskListViewModel(this._taskRepository);
+  EnergyFilter _filter = EnergyFilter.all;
+  EnergyFilter get filter => _filter;
 
-  final TaskRepository _taskRepository;
+  final List<MockTask> _tasks = [
+    MockTask(title: 'Review pull request for auth module', energyLabel: 'Deep focus', dueLabel: 'Due 2:00 PM'),
+    MockTask(title: 'Reply to team standup thread', energyLabel: 'Quick win', dueLabel: 'Due 10:00 AM'),
+    MockTask(title: 'Buy groceries for the week', energyLabel: 'Low effort', isCompleted: true),
+    MockTask(title: 'Water the plants', energyLabel: 'Low effort'),
+  ];
 
-  bool _isLoading = false;
-  List<Task> _tasks = <Task>[];
+  List<MockTask> get visibleTasks => _tasks;
 
-  bool get isLoading => _isLoading;
-  List<Task> get tasks => List<Task>.unmodifiable(_tasks);
-
-  Future<void> loadTasks() async {
-    _isLoading = true;
-    notifyListeners();
-
-    _tasks = await _taskRepository.getTasks();
-
-    _isLoading = false;
+  void setFilter(EnergyFilter filter) {
+    _filter = filter;
     notifyListeners();
   }
 
-  Future<void> toggleTask(Task task) async {
-    final Task updated = task.copyWith(isCompleted: !task.isCompleted);
-    await _taskRepository.upsertTask(updated);
-    await loadTasks();
-  }
-
-  Future<void> removeTask(String taskId) async {
-    await _taskRepository.deleteTask(taskId);
-    await loadTasks();
+  void toggleComplete(int index) {
+    notifyListeners();
   }
 }
