@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:todo_app/utils/theme/app_colors.dart';
 import '../../services/preferences/preferences_service.dart';
 
 enum AccentTheme { ocean, coral, forest }
@@ -41,11 +42,12 @@ class ThemeViewModel extends ChangeNotifier {
   Color get accentColor {
     switch (_accentTheme) {
       case AccentTheme.ocean:
-        return const Color(0xFF1B6EC2);
+        return AppColors.oceanAccent600;
       case AccentTheme.coral:
-        return const Color(0xFFC25533);
+      
+        return AppColors.coralAccent600;
       case AccentTheme.forest:
-        return const Color(0xFF2B7A4B);
+        return AppColors.forestAccent600;
     }
   }
 }
