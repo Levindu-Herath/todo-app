@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:todo_app/features/task_form/task_form_screen.dart';
+import 'package:todo_app/models/energy_level.dart';
+import 'package:todo_app/models/task.dart';
 import 'package:todo_app/utils/routes/app_routes.dart';
+import 'package:todo_app/utils/theme/energy_colors.dart';
 import '../../di/service_locator.dart';
 import '../../utils/theme/app_colors.dart';
 import 'task_list_viewmodel.dart';
@@ -20,6 +26,64 @@ class TaskListScreen extends StatelessWidget {
 
 class _TaskListView extends StatelessWidget {
   const _TaskListView();
+
+  // void _handleDelete(
+  //   BuildContext context,
+  //   TaskListViewModel viewModel,
+  //   Task task,
+  // ) async {
+  //   final taskId = await viewModel.softDeleteTask(task);
+
+  //   final messenger = ScaffoldMessenger.of(context);
+  //   messenger.hideCurrentSnackBar();
+  //   messenger
+  //       .showSnackBar(
+  //         SnackBar(
+  //           content: const Text('Task deleted'),
+  //           duration: const Duration(seconds: 5),
+  //           action: SnackBarAction(
+  //             label: 'Undo',
+  //             onPressed: () => viewModel.restoreTask(taskId),
+  //           ),
+  //         ),
+  //       )
+  //       .closed
+  //       .then((reason) {
+  //         // If not dismissed via the Undo action, permanently delete after the snackbar closes.
+  //         if (reason != SnackBarClosedReason.action) {
+  //           viewModel.permanentlyDeleteTask(taskId);
+  //         }
+  //       });
+  // }
+
+  void _showUndoSnackbar(
+    BuildContext context,
+    TaskListViewModel viewModel,
+    String taskId,
+  ) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: const Text('Task deleted'),
+          duration: const Duration(seconds: 5),
+          action: SnackBarAction(
+            label: 'Undo',
+            onPressed: () => viewModel.undoDelete(taskId),
+          ),
+        ),
+      );
+  }
+
+  String? _formatDueDate(DateTime? date) {
+    if (date == null) return null;
+    final hour = date.hour == 0
+        ? 12
+        : (date.hour > 12 ? date.hour - 12 : date.hour);
+    final period = date.hour >= 12 ? 'PM' : 'AM';
+    final minute = date.minute.toString().padLeft(2, '0');
+    return 'Due $hour:$minute $period';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,24 +135,34 @@ class _TaskListView extends StatelessWidget {
                     label: 'All',
                     selected: viewModel.filter == EnergyFilter.all,
                     onTap: () => viewModel.setFilter(EnergyFilter.all),
+                    // no energyColors — falls back to accent
                   ),
                   const SizedBox(width: 8),
                   _FilterChip(
                     label: 'Quick win',
                     selected: viewModel.filter == EnergyFilter.quickWin,
                     onTap: () => viewModel.setFilter(EnergyFilter.quickWin),
+                    energyColors: isDark
+                        ? EnergyColors.quickWinDark
+                        : EnergyColors.quickWinLight,
                   ),
                   const SizedBox(width: 8),
                   _FilterChip(
                     label: 'Deep focus',
                     selected: viewModel.filter == EnergyFilter.deepFocus,
                     onTap: () => viewModel.setFilter(EnergyFilter.deepFocus),
+                    energyColors: isDark
+                        ? EnergyColors.deepFocusDark
+                        : EnergyColors.deepFocusLight,
                   ),
                   const SizedBox(width: 8),
                   _FilterChip(
                     label: 'Low effort',
                     selected: viewModel.filter == EnergyFilter.lowEffort,
                     onTap: () => viewModel.setFilter(EnergyFilter.lowEffort),
+                    energyColors: isDark
+                        ? EnergyColors.lowEffortDark
+                        : EnergyColors.lowEffortLight,
                   ),
                 ],
               ),
@@ -115,13 +189,61 @@ class _TaskListView extends StatelessWidget {
                 separatorBuilder: (_, __) => const SizedBox(height: 8),
                 itemBuilder: (context, index) {
                   final task = viewModel.visibleTasks[index];
-                  return _TaskTile(
-                    title: task.title,
-                    energyLabel: task.energyLabel,
-                    dueLabel: task.dueLabel,
-                    isCompleted: task.isCompleted,
-                    isDark: isDark,
-                    onCheck: () => viewModel.toggleComplete(index),
+                  return Slidable(
+                    key: ValueKey(task.id),
+                    startActionPane: ActionPane(
+                      motion: const DrawerMotion(),
+                      extentRatio: 0.25,
+                      children: [
+                        SlidableAction(
+                          onPressed: (_) => viewModel.toggleComplete(task),
+                          backgroundColor: const Color(0xFF2B7A4B),
+                          foregroundColor: Colors.white,
+                          icon: Icons.check,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ],
+                    ),
+                    endActionPane: ActionPane(
+                      motion: const DrawerMotion(),
+                      extentRatio: 0.5,
+                      children: [
+                        SlidableAction(
+                          onPressed: (_) => viewModel.snoozeTask(task),
+                          backgroundColor: const Color(0xFFD4880F),
+                          foregroundColor: Colors.white,
+                          icon: Icons.schedule,
+                          borderRadius: const BorderRadius.horizontal(
+                            left: Radius.circular(12),
+                          ),
+                        ),
+                        SlidableAction(
+                          onPressed: (_) async {
+                            HapticFeedback.heavyImpact();
+                            final taskId = await viewModel.deleteTaskWithUndo(
+                              task,
+                            );
+                            if (context.mounted) {
+                              _showUndoSnackbar(context, viewModel, taskId);
+                            }
+                          },
+                          backgroundColor: const Color(0xFFE24B4A),
+                          foregroundColor: Colors.white,
+                          icon: Icons.delete_outline,
+                          borderRadius: const BorderRadius.horizontal(
+                            right: Radius.circular(12),
+                          ),
+                        ),
+                      ],
+                    ),
+                    child: _TaskTile(
+                      title: task.title,
+                      energyLabel: task.energyLevel.label,
+                      dueLabel: _formatDueDate(task.dueDate),
+                      isCompleted: task.isCompleted,
+                      isDark: isDark,
+                      onCheck: () => viewModel.toggleComplete(task),
+                    ),
                   );
                 },
               ),
@@ -130,12 +252,13 @@ class _TaskListView extends StatelessWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: AppColors.accent600,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        onPressed: () {
-          // Open task form bottom sheet — next feature
+        onPressed: () async {
+          await showTaskFormSheet(context);
+          if (context.mounted) {
+            context.read<TaskListViewModel>().refresh();
+          }
         },
-        child: const Icon(Icons.add, color: Colors.white),
+        child: const Icon(Icons.add),
       ),
     );
   }
@@ -145,28 +268,39 @@ class _FilterChip extends StatelessWidget {
   final String label;
   final bool selected;
   final VoidCallback onTap;
+  final EnergyColorSet? energyColors; // null = use accent (for "All")
 
   const _FilterChip({
     required this.label,
     required this.selected,
     required this.onTap,
+    this.energyColors,
   });
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final accentColor = theme.colorScheme.primary;
+
+    final selectedBg = energyColors?.bg ?? accentColor;
+    final selectedBorder = energyColors?.border ?? accentColor;
+    final selectedText = energyColors != null
+        ? energyColors!.text
+        : Colors.white;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
           color: selected
-              ? AppColors.accent600
+              ? selectedBg
               : (isDark ? AppColors.darkCard : AppColors.lightCard),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: selected
-                ? AppColors.accent600
+                ? selectedBorder
                 : (isDark ? AppColors.darkBorder : AppColors.lightBorder),
           ),
         ),
@@ -176,7 +310,7 @@ class _FilterChip extends StatelessWidget {
             style: TextStyle(
               fontSize: 13,
               color: selected
-                  ? Colors.white
+                  ? selectedText
                   : (isDark
                         ? AppColors.darkTextSecondary
                         : AppColors.lightTextSecondary),
