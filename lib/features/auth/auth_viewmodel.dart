@@ -1,6 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../services/auth/auth_repository.dart';
+import '../../di/service_locator.dart';
+import '../../services/task/synced_task_repository.dart';
 
 enum AuthStatus { idle, loading, error }
 
@@ -20,6 +23,7 @@ class AuthViewModel extends ChangeNotifier {
     try {
       await _authRepository.signInWithEmail(email.trim(), password);
       _setIdle();
+      unawaited(getIt<SyncedTaskRepository>().pullFromRemote());
       return true;
     } on FirebaseAuthException catch (e) {
       _setError(_mapAuthError(e.code));
@@ -35,6 +39,7 @@ class AuthViewModel extends ChangeNotifier {
     try {
       await _authRepository.signUpWithEmail(email.trim(), password);
       _setIdle();
+      unawaited(getIt<SyncedTaskRepository>().pullFromRemote());
       return true;
     } on FirebaseAuthException catch (e) {
       _setError(_mapAuthError(e.code));
@@ -50,6 +55,7 @@ class AuthViewModel extends ChangeNotifier {
     try {
       await _authRepository.signInWithGoogle();
       _setIdle();
+      unawaited(getIt<SyncedTaskRepository>().pullFromRemote());
       return true;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'sign-in-cancelled') {

@@ -71,4 +71,34 @@ class Task extends HiveObject {
       dueDate: dueDate ?? this.dueDate,
     );
   }
+
+  Map<String, dynamic> toFirestoreMap() {
+    return {
+      'id': id,
+      'title': title,
+      'description': description,
+      'energyLevel': energyLevel.name,
+      'isCompleted': isCompleted,
+      'isDeleted': isDeleted,
+      'createdAt': createdAt.toIso8601String(),
+      'completedAt': completedAt?.toIso8601String(),
+      'deletedAt': deletedAt?.toIso8601String(),
+      'dueDate': dueDate?.toIso8601String(),
+    };
+  }
+
+  static Task fromFirestoreMap(Map<String, dynamic> map) {
+    return Task(
+      id: map['id'] as String,
+      title: map['title'] as String,
+      description: map['description'] as String?,
+      energyLevel: EnergyLevel.values.byName(map['energyLevel'] as String),
+      isCompleted: map['isCompleted'] as bool? ?? false,
+      isDeleted: map['isDeleted'] as bool? ?? false,
+      createdAt: DateTime.parse(map['createdAt'] as String),
+      completedAt: map['completedAt'] != null ? DateTime.parse(map['completedAt'] as String) : null,
+      deletedAt: map['deletedAt'] != null ? DateTime.parse(map['deletedAt'] as String) : null,
+      dueDate: map['dueDate'] != null ? DateTime.parse(map['dueDate'] as String) : null,
+    );
+  }
 }

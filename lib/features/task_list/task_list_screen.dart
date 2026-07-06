@@ -9,6 +9,7 @@ import 'package:todo_app/utils/routes/app_routes.dart';
 import 'package:todo_app/utils/theme/energy_colors.dart';
 import '../../di/service_locator.dart';
 import '../../utils/theme/app_colors.dart';
+import '../../widgets/focus_mode_view.dart';
 import 'task_list_viewmodel.dart';
 
 class TaskListScreen extends StatelessWidget {
@@ -43,8 +44,6 @@ class _TaskListView extends StatelessWidget {
         ),
       ),
     );
-    // Safety net: force-close this specific snackbar after 5s in case
-    // the built-in duration-based auto-dismiss doesn't fire.
     Future.delayed(const Duration(seconds: 5), () {
       controller.close();
     });
@@ -86,176 +85,193 @@ class _TaskListView extends StatelessWidget {
                           : AppColors.lightTextPrimary,
                     ),
                   ),
-                  IconButton(
-                    icon: Icon(
-                      Icons.settings_outlined,
-                      color: isDark
-                          ? AppColors.darkTextSecondary
-                          : AppColors.lightTextSecondary,
-                    ),
-                    onPressed: () {
-                      context.push(AppRoutes.settings);
-                    },
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: Icon(
+                          Icons.center_focus_strong_outlined,
+                          color: isDark
+                              ? AppColors.darkTextSecondary
+                              : AppColors.lightTextSecondary,
+                        ),
+                        onPressed: () => viewModel.toggleFocusMode(),
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          Icons.settings_outlined,
+                          color: isDark
+                              ? AppColors.darkTextSecondary
+                              : AppColors.lightTextSecondary,
+                        ),
+                        onPressed: () => context.push(AppRoutes.settings),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-            SizedBox(
-              height: 44,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                children: [
-                  _FilterChip(
-                    label: 'All',
-                    selected: viewModel.filter == EnergyFilter.all,
-                    onTap: () => viewModel.setFilter(EnergyFilter.all),
-                  ),
-                  const SizedBox(width: 8),
-                  _FilterChip(
-                    label: 'Quick win',
-                    selected: viewModel.filter == EnergyFilter.quickWin,
-                    onTap: () => viewModel.setFilter(EnergyFilter.quickWin),
-                    energyColors: isDark
-                        ? EnergyColors.quickWinDark
-                        : EnergyColors.quickWinLight,
-                  ),
-                  const SizedBox(width: 8),
-                  _FilterChip(
-                    label: 'Deep focus',
-                    selected: viewModel.filter == EnergyFilter.deepFocus,
-                    onTap: () => viewModel.setFilter(EnergyFilter.deepFocus),
-                    energyColors: isDark
-                        ? EnergyColors.deepFocusDark
-                        : EnergyColors.deepFocusLight,
-                  ),
-                  const SizedBox(width: 8),
-                  _FilterChip(
-                    label: 'Low effort',
-                    selected: viewModel.filter == EnergyFilter.lowEffort,
-                    onTap: () => viewModel.setFilter(EnergyFilter.lowEffort),
-                    energyColors: isDark
-                        ? EnergyColors.lowEffortDark
-                        : EnergyColors.lowEffortLight,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Text(
-                'TODAY · ${viewModel.visibleTasks.length} TASKS',
-                style: TextStyle(
-                  fontSize: 11,
-                  letterSpacing: 0.5,
-                  color: isDark
-                      ? AppColors.darkTextMuted
-                      : AppColors.lightTextMuted,
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
             Expanded(
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: viewModel.visibleTasks.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 8),
-                itemBuilder: (itemContext, index) {
-                  final task = viewModel.visibleTasks[index];
-                  return Slidable(
-                    key: ValueKey(task.id),
-                    startActionPane: ActionPane(
-                      motion: const DrawerMotion(),
-                      extentRatio: 0.25,
+              child: viewModel.isFocusMode
+                  ? FocusModeView(viewModel: viewModel, isDark: isDark)
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SlidableAction(
-                          onPressed: (_) {
-                            HapticFeedback.mediumImpact();
-                            viewModel.toggleComplete(task);
-                          },
-                          backgroundColor: const Color(0xFF2B7A4B),
-                          foregroundColor: Colors.white,
-                          icon: Icons.check,
-                          borderRadius: BorderRadius.circular(12),
+                        SizedBox(
+                          height: 44,
+                          child: ListView(
+                            scrollDirection: Axis.horizontal,
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            children: [
+                              _FilterChip(
+                                label: 'All',
+                                selected: viewModel.filter == EnergyFilter.all,
+                                onTap: () => viewModel.setFilter(EnergyFilter.all),
+                              ),
+                              const SizedBox(width: 8),
+                              _FilterChip(
+                                label: 'Quick win',
+                                selected: viewModel.filter == EnergyFilter.quickWin,
+                                onTap: () => viewModel.setFilter(EnergyFilter.quickWin),
+                                energyColors: isDark
+                                    ? EnergyColors.quickWinDark
+                                    : EnergyColors.quickWinLight,
+                              ),
+                              const SizedBox(width: 8),
+                              _FilterChip(
+                                label: 'Deep focus',
+                                selected: viewModel.filter == EnergyFilter.deepFocus,
+                                onTap: () => viewModel.setFilter(EnergyFilter.deepFocus),
+                                energyColors: isDark
+                                    ? EnergyColors.deepFocusDark
+                                    : EnergyColors.deepFocusLight,
+                              ),
+                              const SizedBox(width: 8),
+                              _FilterChip(
+                                label: 'Low effort',
+                                selected: viewModel.filter == EnergyFilter.lowEffort,
+                                onTap: () => viewModel.setFilter(EnergyFilter.lowEffort),
+                                energyColors: isDark
+                                    ? EnergyColors.lowEffortDark
+                                    : EnergyColors.lowEffortLight,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(
+                            'TODAY · ${viewModel.visibleTasks.length} TASKS',
+                            style: TextStyle(
+                              fontSize: 11,
+                              letterSpacing: 0.5,
+                              color: isDark
+                                  ? AppColors.darkTextMuted
+                                  : AppColors.lightTextMuted,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Expanded(
+                          child: ListView.separated(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            itemCount: viewModel.visibleTasks.length,
+                            separatorBuilder: (_, __) => const SizedBox(height: 8),
+                            itemBuilder: (itemContext, index) {
+                              final task = viewModel.visibleTasks[index];
+                              return Slidable(
+                                key: ValueKey(task.id),
+                                startActionPane: ActionPane(
+                                  motion: const DrawerMotion(),
+                                  extentRatio: 0.25,
+                                  children: [
+                                    SlidableAction(
+                                      onPressed: (_) {
+                                        HapticFeedback.mediumImpact();
+                                        viewModel.toggleComplete(task);
+                                      },
+                                      backgroundColor: const Color(0xFF2B7A4B),
+                                      foregroundColor: Colors.white,
+                                      icon: Icons.check,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ],
+                                ),
+                                endActionPane: ActionPane(
+                                  motion: const DrawerMotion(),
+                                  extentRatio: 0.5,
+                                  children: [
+                                    SlidableAction(
+                                      onPressed: (_) => viewModel.snoozeTask(task),
+                                      backgroundColor: const Color(0xFFD4880F),
+                                      foregroundColor: Colors.white,
+                                      icon: Icons.schedule,
+                                      borderRadius: const BorderRadius.horizontal(
+                                        left: Radius.circular(12),
+                                      ),
+                                    ),
+                                    SlidableAction(
+                                      onPressed: (_) async {
+                                        HapticFeedback.heavyImpact();
+                                        final taskId = await viewModel.deleteTaskWithUndo(
+                                          task,
+                                        );
+                                        if (context.mounted) {
+                                          _showUndoSnackbar(context, viewModel, taskId);
+                                        }
+                                      },
+                                      backgroundColor: const Color(0xFFE24B4A),
+                                      foregroundColor: Colors.white,
+                                      icon: Icons.delete_outline,
+                                      borderRadius: const BorderRadius.horizontal(
+                                        right: Radius.circular(12),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                child: _TaskTile(
+                                  title: task.title,
+                                  energyLabel: task.energyLevel.label,
+                                  dueLabel: _formatDueDate(task.dueDate),
+                                  isCompleted: task.isCompleted,
+                                  isDark: isDark,
+                                  onCheck: () => viewModel.toggleComplete(task),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Center(
+                            child: Text(
+                              '↔ Swipe right to complete · left to delete',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: isDark
+                                    ? AppColors.darkTextMuted
+                                    : AppColors.lightTextMuted,
+                              ),
+                            ),
+                          ),
                         ),
                       ],
                     ),
-                    endActionPane: ActionPane(
-                      motion: const DrawerMotion(),
-                      extentRatio: 0.5,
-                      children: [
-                        SlidableAction(
-                          onPressed: (_) => viewModel.snoozeTask(task),
-                          backgroundColor: const Color(0xFFD4880F),
-                          foregroundColor: Colors.white,
-                          icon: Icons.schedule,
-                          borderRadius: const BorderRadius.horizontal(
-                            left: Radius.circular(12),
-                          ),
-                        ),
-                        SlidableAction(
-                          onPressed: (_) async {
-                            HapticFeedback.heavyImpact();
-                            final taskId = await viewModel.deleteTaskWithUndo(
-                              task,
-                            );
-                            // Use the OUTER build() context, not itemContext —
-                            // itemContext belongs to this list item, which is
-                            // already removed from the tree by the time this
-                            // await resolves (task is soft-deleted immediately,
-                            // triggering a rebuild that drops this item).
-                            if (context.mounted) {
-                              _showUndoSnackbar(context, viewModel, taskId);
-                            }
-                          },
-                          backgroundColor: const Color(0xFFE24B4A),
-                          foregroundColor: Colors.white,
-                          icon: Icons.delete_outline,
-                          borderRadius: const BorderRadius.horizontal(
-                            right: Radius.circular(12),
-                          ),
-                        ),
-                      ],
-                    ),
-                    child: _TaskTile(
-                      title: task.title,
-                      energyLabel: task.energyLevel.label,
-                      dueLabel: _formatDueDate(task.dueDate),
-                      isCompleted: task.isCompleted,
-                      isDark: isDark,
-                      onCheck: () => viewModel.toggleComplete(task),
-                    ),
-                  );
-                },
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Center(
-                child: Text(
-                  '↔ Swipe right to complete · left to delete',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: isDark
-                        ? AppColors.darkTextMuted
-                        : AppColors.lightTextMuted,
-                  ),
-                ),
-              ),
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          await showTaskFormSheet(context);
-          if (context.mounted) {
-            context.read<TaskListViewModel>().refresh();
-          }
-        },
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton: viewModel.isFocusMode
+          ? null
+          : FloatingActionButton(
+              onPressed: () async {
+                await showTaskFormSheet(context);
+                if (context.mounted) {
+                  context.read<TaskListViewModel>().refresh();
+                }
+              },
+              child: const Icon(Icons.add),
+            ),
     );
   }
 }
@@ -264,7 +280,7 @@ class _FilterChip extends StatelessWidget {
   final String label;
   final bool selected;
   final VoidCallback onTap;
-  final EnergyColorSet? energyColors; // null = use accent (for "All")
+  final EnergyColorSet? energyColors;
 
   const _FilterChip({
     required this.label,

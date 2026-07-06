@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../models/task.dart';
 import '../../models/energy_level.dart';
@@ -18,8 +17,6 @@ class TaskListViewModel extends ChangeNotifier {
 
   List<Task> _tasks = [];
 
-  final Map<String, Timer> _pendingDeleteTimers = {};
-
   List<Task> get visibleTasks {
     switch (_filter) {
       case EnergyFilter.all:
@@ -32,6 +29,54 @@ class TaskListViewModel extends ChangeNotifier {
         return _tasks.where((t) => t.energyLevel == EnergyLevel.lowEffort).toList();
     }
   }
+
+  // --- Focus mode ---
+  bool _isFocusMode = false;
+  bool get isFocusMode => _isFocusMode;
+
+  int _focusIndex = 0;
+
+  /// Reuses the same filtered list as the normal view, just narrowed to
+  /// incomplete tasks — this is the "reuses energy filter logic" behavior
+  /// from the spec, not a separate data source.
+  List<Task> get focusQueue => visibleTasks.where((t) => !t.isCompleted).toList();
+
+  Task? get currentFocusTask {
+    final queue = focusQueue;
+    if (queue.isEmpty) return null;
+    if (_focusIndex >= queue.length) _focusIndex = 0;
+    return queue[_focusIndex];
+  }
+
+  int get focusRemainingCount => focusQueue.length;
+  int get focusPosition => focusQueue.isEmpty ? 0 : _focusIndex + 1;
+
+  void toggleFocusMode() {
+    _isFocusMode = !_isFocusMode;
+    _focusIndex = 0;
+    notifyListeners();
+  }
+
+  void exitFocusMode() {
+    _isFocusMode = false;
+    notifyListeners();
+  }
+
+  void skipFocusTask() {
+    final queue = focusQueue;
+    if (queue.isEmpty) return;
+    _focusIndex = (_focusIndex + 1) % queue.length;
+    notifyListeners();
+  }
+
+  Future<void> completeFocusTask(Task task) async {
+    await toggleComplete(task);
+    // After completing, the queue shrinks — clamp index so it doesn't
+    // point past the end, and stay put rather than skipping ahead.
+    final queue = focusQueue;
+    if (_focusIndex >= queue.length) _focusIndex = 0;
+  }
+  // --- End focus mode ---
 
   void _loadTasks() {
     _tasks = _taskRepository.getActiveTasks();
@@ -57,25 +102,13 @@ class TaskListViewModel extends ChangeNotifier {
     _loadTasks();
   }
 
-  /// Soft-deletes immediately, refreshes the visible list, and starts an
-  /// independent 5-second timer for permanent deletion. Returns the task id
-  /// so the screen can show an undo snackbar tied to the same id.
   Future<String> deleteTaskWithUndo(Task task) async {
     await _taskRepository.softDeleteTask(task.id);
     _loadTasks();
-
-    _pendingDeleteTimers[task.id]?.cancel();
-    _pendingDeleteTimers[task.id] = Timer(const Duration(seconds: 5), () {
-      _taskRepository.permanentlyDeleteTask(task.id);
-      _pendingDeleteTimers.remove(task.id);
-    });
-
     return task.id;
   }
 
   void undoDelete(String taskId) {
-    _pendingDeleteTimers[taskId]?.cancel();
-    _pendingDeleteTimers.remove(taskId);
     _taskRepository.restoreTask(taskId).then((_) => _loadTasks());
   }
 
@@ -85,13 +118,5 @@ class TaskListViewModel extends ChangeNotifier {
       task.copyWith(dueDate: DateTime(tomorrow.year, tomorrow.month, tomorrow.day)),
     );
     _loadTasks();
-  }
-
-  @override
-  void dispose() {
-    for (final timer in _pendingDeleteTimers.values) {
-      timer.cancel();
-    }
-    super.dispose();
   }
 }

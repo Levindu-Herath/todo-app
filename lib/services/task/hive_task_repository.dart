@@ -21,7 +21,10 @@ class HiveTaskRepository implements TaskRepository {
   Future<void> softDeleteTask(String id) async {
     final task = _box.get(id);
     if (task == null) return;
-    await _box.put(id, task.copyWith(isDeleted: true, deletedAt: DateTime.now()));
+    await _box.put(
+      id,
+      task.copyWith(isDeleted: true, deletedAt: DateTime.now()),
+    );
   }
 
   @override
@@ -51,5 +54,9 @@ class HiveTaskRepository implements TaskRepository {
   Task? getTopTask() {
     final active = getActiveTasks().where((t) => !t.isCompleted).toList();
     return active.isNotEmpty ? active.first : null;
+  }
+
+  List<Task> getAllTasksIncludingDeleted() {
+    return _box.values.toList();
   }
 }
