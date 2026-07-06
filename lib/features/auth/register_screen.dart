@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:provider/provider.dart';
+import 'package:todo_app/widgets/google_sign_button.dart';
 import '../../utils/theme/app_colors.dart';
 import 'auth_viewmodel.dart';
 
@@ -26,10 +27,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _handleSignUp(AuthViewModel viewModel) async {
-    await viewModel.signUp(
-      _emailController.text,
-      _passwordController.text,
-    );
+    await viewModel.signUp(_emailController.text, _passwordController.text);
     // On success, auth-state listener wrapping the app navigates to task list.
   }
 
@@ -54,8 +52,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   color: AppColors.accent600,
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: const Icon(Icons.check_box_outlined,
-                    color: Colors.white, size: 24),
+                child: const Icon(
+                  Icons.check_box_outlined,
+                  color: Colors.white,
+                  size: 24,
+                ),
               ),
               const SizedBox(height: 24),
               Text(
@@ -79,9 +80,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              _RegField(controller: _nameController, hint: 'Full name', isDark: isDark),
+              _RegField(
+                controller: _nameController,
+                hint: 'Full name',
+                isDark: isDark,
+              ),
               const SizedBox(height: 12),
-              _RegField(controller: _emailController, hint: 'Email address', isDark: isDark),
+              _RegField(
+                controller: _emailController,
+                hint: 'Email address',
+                isDark: isDark,
+              ),
               const SizedBox(height: 12),
               _RegField(
                 controller: _passwordController,
@@ -94,17 +103,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ? Icons.visibility_off_outlined
                         : Icons.visibility_outlined,
                     size: 18,
-                    color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+                    color: isDark
+                        ? AppColors.darkTextMuted
+                        : AppColors.lightTextMuted,
                   ),
-                  onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                  onPressed: () =>
+                      setState(() => _obscurePassword = !_obscurePassword),
                 ),
               ),
               const SizedBox(height: 6),
               Text(
                 'Min 8 characters, 1 uppercase, 1 number',
                 style: TextStyle(
-                    fontSize: 10,
-                    color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted),
+                  fontSize: 10,
+                  color: isDark
+                      ? AppColors.darkTextMuted
+                      : AppColors.lightTextMuted,
+                ),
               ),
               if (viewModel.status == AuthStatus.error) ...[
                 const SizedBox(height: 8),
@@ -120,7 +135,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.accent600,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   onPressed: viewModel.status == AuthStatus.loading
                       ? null
@@ -129,42 +146,60 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ? const SizedBox(
                           width: 20,
                           height: 20,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
                         )
-                      : const Text('Create account',
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                      : const Text(
+                          'Create account',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                 ),
               ),
               const SizedBox(height: 24),
               Row(
                 children: [
-                  Expanded(child: Divider(color: isDark ? AppColors.darkBorder : AppColors.lightBorder)),
+                  Expanded(
+                    child: Divider(
+                      color: isDark
+                          ? AppColors.darkBorder
+                          : AppColors.lightBorder,
+                    ),
+                  ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Text('or',
-                        style: TextStyle(
-                            fontSize: 12,
-                            color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted)),
+                    child: Text(
+                      'or',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark
+                            ? AppColors.darkTextMuted
+                            : AppColors.lightTextMuted,
+                      ),
+                    ),
                   ),
-                  Expanded(child: Divider(color: isDark ? AppColors.darkBorder : AppColors.lightBorder)),
+                  Expanded(
+                    child: Divider(
+                      color: isDark
+                          ? AppColors.darkBorder
+                          : AppColors.lightBorder,
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
                 height: 48,
-                child: OutlinedButton.icon(
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  icon: const Icon(Icons.g_mobiledata, size: 22),
-                  label: Text('Continue with Google',
-                      style: TextStyle(
-                          color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary)),
-                  onPressed: viewModel.status == AuthStatus.loading
-                      ? null
-                      : () => viewModel.signInWithGoogle(),
+                child: GoogleSignButton(
+                  isLoading: viewModel.status == AuthStatus.loading,
+                  onPressed: () => viewModel.signInWithGoogle(),
+                  label:
+                      'Sign up with Google', 
                 ),
               ),
               const SizedBox(height: 24),
@@ -172,13 +207,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 child: RichText(
                   text: TextSpan(
                     style: TextStyle(
-                        fontSize: 12,
-                        color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
+                      fontSize: 12,
+                      color: isDark
+                          ? AppColors.darkTextSecondary
+                          : AppColors.lightTextSecondary,
+                    ),
                     children: [
                       const TextSpan(text: 'Already have an account? '),
                       TextSpan(
                         text: 'Sign in',
-                        style: const TextStyle(color: AppColors.accent600, fontWeight: FontWeight.w600),
+                        style: const TextStyle(
+                          color: AppColors.accent600,
+                          fontWeight: FontWeight.w600,
+                        ),
                         recognizer: TapGestureRecognizer()
                           ..onTap = () => Navigator.of(context).pop(),
                       ),
@@ -214,20 +255,32 @@ class _RegField extends StatelessWidget {
     return TextField(
       controller: controller,
       obscureText: obscureText,
-      style: TextStyle(fontSize: 13, color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary),
+      style: TextStyle(
+        fontSize: 13,
+        color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+      ),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: TextStyle(color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted),
+        hintStyle: TextStyle(
+          color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+        ),
         filled: true,
         fillColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 14,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+          borderSide: BorderSide(
+            color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+          ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+          borderSide: BorderSide(
+            color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+          ),
         ),
         suffixIcon: suffixIcon,
       ),

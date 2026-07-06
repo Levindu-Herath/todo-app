@@ -7,7 +7,12 @@ class _AccentRamp {
   final Color a400;
   final Color a600;
   final Color a800;
-  const _AccentRamp({required this.a50, required this.a400, required this.a600, required this.a800});
+  const _AccentRamp({
+    required this.a50,
+    required this.a400,
+    required this.a600,
+    required this.a800,
+  });
 }
 
 class AppTheme {
@@ -39,7 +44,10 @@ class AppTheme {
     }
   }
 
-  static ThemeData build({required AccentTheme accent, required Brightness brightness}) {
+  static ThemeData build({
+    required AccentTheme accent,
+    required Brightness brightness,
+  }) {
     final ramp = _rampFor(accent);
     final isDark = brightness == Brightness.dark;
 
@@ -47,9 +55,15 @@ class AppTheme {
     final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
     final card = isDark ? AppColors.darkCard : AppColors.lightCard;
     final border = isDark ? AppColors.darkBorder : AppColors.lightBorder;
-    final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
-    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
-    final textMuted = isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted;
+    final textPrimary = isDark
+        ? AppColors.darkTextPrimary
+        : AppColors.lightTextPrimary;
+    final textSecondary = isDark
+        ? AppColors.darkTextSecondary
+        : AppColors.lightTextSecondary;
+    final textMuted = isDark
+        ? AppColors.darkTextMuted
+        : AppColors.lightTextMuted;
 
     final colorScheme = ColorScheme(
       brightness: brightness,
@@ -78,14 +92,30 @@ class AppTheme {
         backgroundColor: bg,
         foregroundColor: textPrimary,
         elevation: 0,
-        titleTextStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.w500, color: textPrimary),
+        titleTextStyle: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w500,
+          color: textPrimary,
+        ),
         iconTheme: IconThemeData(color: textSecondary),
       ),
 
       textTheme: TextTheme(
-        headlineSmall: TextStyle(fontSize: 24, fontWeight: FontWeight.w500, color: textPrimary),
-        titleLarge: TextStyle(fontSize: 20, fontWeight: FontWeight.w500, color: textPrimary),
-        titleMedium: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: textPrimary),
+        headlineSmall: TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.w500,
+          color: textPrimary,
+        ),
+        titleLarge: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w500,
+          color: textPrimary,
+        ),
+        titleMedium: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+          color: textPrimary,
+        ),
         bodyLarge: TextStyle(fontSize: 16, color: textPrimary),
         bodyMedium: TextStyle(fontSize: 14, color: textPrimary),
         labelMedium: TextStyle(fontSize: 13, color: textSecondary),
@@ -98,7 +128,9 @@ class AppTheme {
           backgroundColor: ramp.a600,
           foregroundColor: Colors.white,
           minimumSize: const Size.fromHeight(48),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       ),
 
@@ -107,7 +139,9 @@ class AppTheme {
           foregroundColor: textPrimary,
           side: BorderSide(color: border),
           minimumSize: const Size.fromHeight(48),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       ),
 
@@ -119,7 +153,10 @@ class AppTheme {
         filled: true,
         fillColor: surface,
         hintStyle: TextStyle(color: textMuted, fontSize: 13),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 14,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: border),
@@ -139,12 +176,19 @@ class AppTheme {
       ),
 
       switchTheme: SwitchThemeData(
-        thumbColor: WidgetStateProperty.resolveWith(
-          (states) => states.contains(WidgetState.selected) ? Colors.white : null,
-        ),
-        trackColor: WidgetStateProperty.resolveWith(
-          (states) => states.contains(WidgetState.selected) ? ramp.a600 : border,
-        ),
+        thumbColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) return Colors.white;
+          return Colors.white;
+        }),
+        trackColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) return ramp.a600;
+          return border;
+        }),
+        trackOutlineColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) return ramp.a600;
+          return border;
+        }),
+        trackOutlineWidth: const WidgetStatePropertyAll(1),
       ),
 
       floatingActionButtonTheme: FloatingActionButtonThemeData(

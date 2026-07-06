@@ -2,6 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:todo_app/widgets/google_sign_button.dart';
 import '../../utils/routes/app_routes.dart';
 import '../../utils/theme/app_colors.dart';
 import 'auth_viewmodel.dart';
@@ -30,7 +31,6 @@ class _LoginScreenState extends State<LoginScreen> {
       _emailController.text,
       _passwordController.text,
     );
-    
   }
 
   @override
@@ -54,8 +54,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   color: AppColors.accent600,
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: const Icon(Icons.check_box_outlined,
-                    color: Colors.white, size: 24),
+                child: const Icon(
+                  Icons.check_box_outlined,
+                  color: Colors.white,
+                  size: 24,
+                ),
               ),
               const SizedBox(height: 24),
               Text(
@@ -109,10 +112,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 8),
                 Text(
                   viewModel.errorMessage ?? '',
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: AppColors.error,
-                  ),
+                  style: const TextStyle(fontSize: 11, color: AppColors.error),
                 ),
               ],
               Align(
@@ -150,61 +150,54 @@ class _LoginScreenState extends State<LoginScreen> {
                             strokeWidth: 2,
                           ),
                         )
-                      : const Text('Sign in',
+                      : const Text(
+                          'Sign in',
                           style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600)),
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                 ),
               ),
               const SizedBox(height: 24),
               Row(
                 children: [
                   Expanded(
-                      child: Divider(
-                          color: isDark
-                              ? AppColors.darkBorder
-                              : AppColors.lightBorder)),
+                    child: Divider(
+                      color: isDark
+                          ? AppColors.darkBorder
+                          : AppColors.lightBorder,
+                    ),
+                  ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Text('or',
-                        style: TextStyle(
-                            fontSize: 12,
-                            color: isDark
-                                ? AppColors.darkTextMuted
-                                : AppColors.lightTextMuted)),
+                    child: Text(
+                      'or',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark
+                            ? AppColors.darkTextMuted
+                            : AppColors.lightTextMuted,
+                      ),
+                    ),
                   ),
                   Expanded(
-                      child: Divider(
-                          color: isDark
-                              ? AppColors.darkBorder
-                              : AppColors.lightBorder)),
+                    child: Divider(
+                      color: isDark
+                          ? AppColors.darkBorder
+                          : AppColors.lightBorder,
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
                 height: 48,
-                child: OutlinedButton.icon(
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(
-                        color: isDark
-                            ? AppColors.darkBorder
-                            : AppColors.lightBorder),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  icon: const Icon(Icons.g_mobiledata, size: 22),
-                  label: Text(
-                    'Continue with Google',
-                    style: TextStyle(
-                        color: isDark
-                            ? AppColors.darkTextPrimary
-                            : AppColors.lightTextPrimary),
-                  ),
-                  onPressed: viewModel.status == AuthStatus.loading
-                      ? null
-                      : () => viewModel.signInWithGoogle(),
+                child: GoogleSignButton(
+                  isLoading: viewModel.status == AuthStatus.loading,
+                  onPressed: () => viewModel.signInWithGoogle(),
+                  label: 'Continue with Google',
                 ),
               ),
               const SizedBox(height: 24),
@@ -212,17 +205,19 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: RichText(
                   text: TextSpan(
                     style: TextStyle(
-                        fontSize: 12,
-                        color: isDark
-                            ? AppColors.darkTextSecondary
-                            : AppColors.lightTextSecondary),
+                      fontSize: 12,
+                      color: isDark
+                          ? AppColors.darkTextSecondary
+                          : AppColors.lightTextSecondary,
+                    ),
                     children: [
                       const TextSpan(text: "Don't have an account? "),
                       TextSpan(
                         text: 'Sign up',
                         style: const TextStyle(
-                            color: AppColors.accent600,
-                            fontWeight: FontWeight.w600),
+                          color: AppColors.accent600,
+                          fontWeight: FontWeight.w600,
+                        ),
                         recognizer: TapGestureRecognizer()
                           ..onTap = () => context.push(AppRoutes.register),
                       ),
@@ -269,16 +264,21 @@ class _AuthTextField extends StatelessWidget {
         ),
         filled: true,
         fillColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 14,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(
-              color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+            color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+          ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(
-              color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+            color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+          ),
         ),
         suffixIcon: suffixIcon,
       ),
