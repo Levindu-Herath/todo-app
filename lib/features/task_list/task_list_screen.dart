@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_app/features/task_form/task_form_screen.dart';
 import 'package:todo_app/models/energy_level.dart';
-import 'package:todo_app/models/task.dart';
 import 'package:todo_app/utils/routes/app_routes.dart';
 import 'package:todo_app/utils/theme/energy_colors.dart';
 import '../../di/service_locator.dart';
@@ -27,52 +26,28 @@ class TaskListScreen extends StatelessWidget {
 class _TaskListView extends StatelessWidget {
   const _TaskListView();
 
-  // void _handleDelete(
-  //   BuildContext context,
-  //   TaskListViewModel viewModel,
-  //   Task task,
-  // ) async {
-  //   final taskId = await viewModel.softDeleteTask(task);
-
-  //   final messenger = ScaffoldMessenger.of(context);
-  //   messenger.hideCurrentSnackBar();
-  //   messenger
-  //       .showSnackBar(
-  //         SnackBar(
-  //           content: const Text('Task deleted'),
-  //           duration: const Duration(seconds: 5),
-  //           action: SnackBarAction(
-  //             label: 'Undo',
-  //             onPressed: () => viewModel.restoreTask(taskId),
-  //           ),
-  //         ),
-  //       )
-  //       .closed
-  //       .then((reason) {
-  //         // If not dismissed via the Undo action, permanently delete after the snackbar closes.
-  //         if (reason != SnackBarClosedReason.action) {
-  //           viewModel.permanentlyDeleteTask(taskId);
-  //         }
-  //       });
-  // }
-
   void _showUndoSnackbar(
     BuildContext context,
     TaskListViewModel viewModel,
     String taskId,
   ) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: const Text('Task deleted'),
-          duration: const Duration(seconds: 5),
-          action: SnackBarAction(
-            label: 'Undo',
-            onPressed: () => viewModel.undoDelete(taskId),
-          ),
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    final controller = messenger.showSnackBar(
+      SnackBar(
+        content: const Text('Task deleted'),
+        duration: const Duration(seconds: 5),
+        action: SnackBarAction(
+          label: 'Undo',
+          onPressed: () => viewModel.undoDelete(taskId),
         ),
-      );
+      ),
+    );
+    // Safety net: force-close this specific snackbar after 5s in case
+    // the built-in duration-based auto-dismiss doesn't fire.
+    Future.delayed(const Duration(seconds: 5), () {
+      controller.close();
+    });
   }
 
   String? _formatDueDate(DateTime? date) {
@@ -135,7 +110,6 @@ class _TaskListView extends StatelessWidget {
                     label: 'All',
                     selected: viewModel.filter == EnergyFilter.all,
                     onTap: () => viewModel.setFilter(EnergyFilter.all),
-                    // no energyColors — falls back to accent
                   ),
                   const SizedBox(width: 8),
                   _FilterChip(
@@ -187,7 +161,7 @@ class _TaskListView extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 itemCount: viewModel.visibleTasks.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 8),
-                itemBuilder: (context, index) {
+                itemBuilder: (itemContext, index) {
                   final task = viewModel.visibleTasks[index];
                   return Slidable(
                     key: ValueKey(task.id),
@@ -196,7 +170,10 @@ class _TaskListView extends StatelessWidget {
                       extentRatio: 0.25,
                       children: [
                         SlidableAction(
-                          onPressed: (_) => viewModel.toggleComplete(task),
+                          onPressed: (_) {
+                            HapticFeedback.mediumImpact();
+                            viewModel.toggleComplete(task);
+                          },
                           backgroundColor: const Color(0xFF2B7A4B),
                           foregroundColor: Colors.white,
                           icon: Icons.check,
@@ -223,6 +200,11 @@ class _TaskListView extends StatelessWidget {
                             final taskId = await viewModel.deleteTaskWithUndo(
                               task,
                             );
+                            // Use the OUTER build() context, not itemContext —
+                            // itemContext belongs to this list item, which is
+                            // already removed from the tree by the time this
+                            // await resolves (task is soft-deleted immediately,
+                            // triggering a rebuild that drops this item).
                             if (context.mounted) {
                               _showUndoSnackbar(context, viewModel, taskId);
                             }
@@ -246,6 +228,20 @@ class _TaskListView extends StatelessWidget {
                     ),
                   );
                 },
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Center(
+                child: Text(
+                  '↔ Swipe right to complete · left to delete',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: isDark
+                        ? AppColors.darkTextMuted
+                        : AppColors.lightTextMuted,
+                  ),
+                ),
               ),
             ),
           ],
