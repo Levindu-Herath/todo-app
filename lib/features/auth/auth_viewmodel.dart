@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:todo_app/utils/validators.dart';
 import '../../services/auth/auth_repository.dart';
 import '../../di/service_locator.dart';
 import '../../services/task/synced_task_repository.dart';
@@ -17,6 +18,19 @@ class AuthViewModel extends ChangeNotifier {
 
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
+
+  String? passwordError;
+  int passwordStrength = 0;
+  List<String> passwordRequirements = [];
+
+  void onPasswordChanged(String value) {
+    passwordError = PasswordValidator.validate(value);
+    passwordStrength = PasswordValidator.strengthScore(value);
+    passwordRequirements = PasswordValidator.unmetRequirements(value);
+    notifyListeners();
+  }
+
+  bool get isPasswordValid => passwordError == null;
 
   Future<bool> signIn(String email, String password) async {
     _setLoading();

@@ -27,6 +27,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _handleSignUp(AuthViewModel viewModel) async {
+    viewModel.onPasswordChanged(_passwordController.text);
+    if (!viewModel.isPasswordValid) return;
     await viewModel.signUp(_emailController.text, _passwordController.text);
     // On success, auth-state listener wrapping the app navigates to task list.
   }
@@ -97,6 +99,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 hint: 'Password',
                 isDark: isDark,
                 obscureText: _obscurePassword,
+                onChanged: viewModel.onPasswordChanged,
                 suffixIcon: IconButton(
                   icon: Icon(
                     _obscurePassword
@@ -111,16 +114,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       setState(() => _obscurePassword = !_obscurePassword),
                 ),
               ),
-              const SizedBox(height: 6),
-              Text(
-                'Min 8 characters, 1 uppercase, 1 number',
-                style: TextStyle(
-                  fontSize: 10,
-                  color: isDark
-                      ? AppColors.darkTextMuted
-                      : AppColors.lightTextMuted,
+              if (viewModel.passwordRequirements.isNotEmpty) ...[
+                const SizedBox(height: 6),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    for (final requirement in viewModel.passwordRequirements)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 2),
+                        child: Text(
+                          requirement,
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: isDark
+                                ? AppColors.darkTextMuted
+                                : AppColors.lightTextMuted,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
-              ),
+              ],
               if (viewModel.status == AuthStatus.error) ...[
                 const SizedBox(height: 8),
                 Text(
@@ -241,6 +255,7 @@ class _RegField extends StatelessWidget {
   final bool isDark;
   final bool obscureText;
   final Widget? suffixIcon;
+  final ValueChanged<String>? onChanged;
 
   const _RegField({
     required this.controller,
@@ -248,6 +263,7 @@ class _RegField extends StatelessWidget {
     required this.isDark,
     this.obscureText = false,
     this.suffixIcon,
+    this.onChanged,
   });
 
   @override
@@ -255,6 +271,8 @@ class _RegField extends StatelessWidget {
     return TextField(
       controller: controller,
       obscureText: obscureText,
+      onChanged: onChanged,
+      cursorColor: AppColors.oceanAccent600,
       style: TextStyle(
         fontSize: 13,
         color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
@@ -280,6 +298,13 @@ class _RegField extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(
             color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(
+            color: AppColors.oceanAccent600,
+            width: 1.5,
           ),
         ),
         suffixIcon: suffixIcon,

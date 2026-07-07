@@ -253,6 +253,7 @@ class _AuthTextField extends StatelessWidget {
     return TextField(
       controller: controller,
       obscureText: obscureText,
+      cursorColor: AppColors.oceanAccent600,
       style: TextStyle(
         fontSize: 13,
         color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
@@ -278,6 +279,13 @@ class _AuthTextField extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(
             color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(
+            color: AppColors.oceanAccent600,
+            width: 1.5,
           ),
         ),
         suffixIcon: suffixIcon,
