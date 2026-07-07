@@ -50,14 +50,11 @@ class SyncedTaskRepository implements TaskRepository {
     try {
       await batch.commit();
     } catch (_) {
-      // Sync failed (e.g. offline) — re-mark as dirty so the next
-      // successful action retries these ids instead of losing them silently.
+    
       _dirtyTaskIds.addAll(idsToSync);
     }
   }
 
-  /// One-time pull on login — reconciles tasks that exist remotely
-  /// but not yet locally (e.g. fresh install, second device).
   Future<void> pullFromRemote() async {
     final collection = _remoteCollection;
     if (collection == null) return;
@@ -73,8 +70,7 @@ class SyncedTaskRepository implements TaskRepository {
         }
       }
     } catch (_) {
-      // No network on first login — local Hive box just stays empty
-      // until the next successful pull; app remains fully usable offline.
+      throw Exception('Failed to pull tasks from remote. Please check your internet connection.');
     }
   }
 
@@ -110,8 +106,7 @@ class SyncedTaskRepository implements TaskRepository {
       try {
         await collection.doc(id).delete();
       } catch (_) {
-        // Best-effort — if offline, the remote doc just lingers;
-        // acceptable since it's already gone from the user's active view.
+        throw Exception('Failed to permanently delete task from remote. Please check your internet connection.');
       }
     }
   }

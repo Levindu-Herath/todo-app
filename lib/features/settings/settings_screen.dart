@@ -244,26 +244,24 @@ class _SettingsView extends StatelessWidget {
             const SizedBox(height: 20),
             _SectionLabel(text: 'ACCOUNT', isDark: isDark),
             const SizedBox(height: 8),
-            InkWell(
-              onTap: () => _confirmLogOut(context, settingsViewModel),
-              borderRadius: BorderRadius.circular(8),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 10,
-                  horizontal: 4,
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: OutlinedButton.icon(
+                onPressed: () => _confirmLogOut(context, settingsViewModel),
+                icon: const Icon(Icons.logout, size: 18, color: AppColors.error),
+                label: const Text(
+                  'Log out',
+                  style: TextStyle(
+                    color: AppColors.error,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.logout, size: 18, color: AppColors.error),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'Log out',
-                      style: TextStyle(
-                        color: AppColors.error,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: AppColors.error),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               ),
             ),

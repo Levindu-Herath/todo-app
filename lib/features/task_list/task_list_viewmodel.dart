@@ -36,9 +36,6 @@ class TaskListViewModel extends ChangeNotifier {
 
   int _focusIndex = 0;
 
-  /// Reuses the same filtered list as the normal view, just narrowed to
-  /// incomplete tasks — this is the "reuses energy filter logic" behavior
-  /// from the spec, not a separate data source.
   List<Task> get focusQueue => visibleTasks.where((t) => !t.isCompleted).toList();
 
   Task? get currentFocusTask {
@@ -71,8 +68,6 @@ class TaskListViewModel extends ChangeNotifier {
 
   Future<void> completeFocusTask(Task task) async {
     await toggleComplete(task);
-    // After completing, the queue shrinks — clamp index so it doesn't
-    // point past the end, and stay put rather than skipping ahead.
     final queue = focusQueue;
     if (_focusIndex >= queue.length) _focusIndex = 0;
   }

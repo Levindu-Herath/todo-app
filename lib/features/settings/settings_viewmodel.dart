@@ -29,7 +29,5 @@ class SettingsViewModel extends ChangeNotifier {
 
   Future<void> logOut() async {
     await _authRepository.signOut();
-    // No manual navigation needed — GoRouter's redirect reacts to
-    // authStateChanges and routes back to /login automatically.
   }
 }

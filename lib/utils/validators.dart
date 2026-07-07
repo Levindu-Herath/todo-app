@@ -1,7 +1,6 @@
 class PasswordValidator {
   static const int minLength = 8;
 
-  /// Requirements still unmet by [password], in display order.
   static List<String> unmetRequirements(String password) {
     final unmet = <String>[];
     if (password.length < minLength) unmet.add('Min $minLength characters');
@@ -38,7 +37,6 @@ class PasswordValidator {
     return null; // valid
   }
 
-  /// Optional: returns a 0-5 strength score for a visual meter
   static int strengthScore(String password) {
     int score = 0;
     if (password.length >= minLength) score++;

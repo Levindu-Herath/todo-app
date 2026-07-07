@@ -54,13 +54,44 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
   }
 
   Future<void> _pickDueDate(TaskFormViewModel viewModel) async {
+    final current = viewModel.dueDate;
     final picked = await showDatePicker(
       context: context,
-      initialDate: viewModel.dueDate ?? DateTime.now(),
+      initialDate: current ?? DateTime.now(),
       firstDate: DateTime.now().subtract(const Duration(days: 1)),
       lastDate: DateTime.now().add(const Duration(days: 365)),
     );
-    if (picked != null) viewModel.setDueDate(picked);
+    if (picked == null) return;
+    final combined = current == null
+        ? picked
+        : DateTime(picked.year, picked.month, picked.day, current.hour, current.minute);
+    viewModel.setDueDate(combined);
+  }
+
+  Future<void> _pickDueTime(TaskFormViewModel viewModel) async {
+    final current = viewModel.dueDate ?? DateTime.now();
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(current),
+    );
+    if (picked == null) return;
+    final combined = DateTime(
+      current.year,
+      current.month,
+      current.day,
+      picked.hour,
+      picked.minute,
+    );
+    viewModel.setDueDate(combined);
+  }
+
+  String _formatTime(DateTime date) {
+    final hour = date.hour == 0
+        ? 12
+        : (date.hour > 12 ? date.hour - 12 : date.hour);
+    final period = date.hour >= 12 ? 'PM' : 'AM';
+    final minute = date.minute.toString().padLeft(2, '0');
+    return '$hour:$minute $period';
   }
 
   Future<void> _handleSave(TaskFormViewModel viewModel) async {
@@ -146,15 +177,31 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
               const SizedBox(height: 16),
               Text('SCHEDULE', style: theme.textTheme.labelSmall),
               const SizedBox(height: 8),
-              OutlinedButton.icon(
-                onPressed: () => _pickDueDate(viewModel),
-                icon: const Icon(Icons.calendar_today_outlined, size: 16),
-                label: Text(
-                  viewModel.dueDate == null
-                      ? 'Set date'
-                      : '${viewModel.dueDate!.month}/${viewModel.dueDate!.day}/${viewModel.dueDate!.year}',
-                ),
-                style: OutlinedButton.styleFrom(minimumSize: const Size(140, 40)),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: () => _pickDueDate(viewModel),
+                    icon: const Icon(Icons.calendar_today_outlined, size: 16),
+                    label: Text(
+                      viewModel.dueDate == null
+                          ? 'Set date'
+                          : '${viewModel.dueDate!.month}/${viewModel.dueDate!.day}/${viewModel.dueDate!.year}',
+                    ),
+                    style: OutlinedButton.styleFrom(minimumSize: const Size(140, 40)),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: () => _pickDueTime(viewModel),
+                    icon: const Icon(Icons.access_time_outlined, size: 16),
+                    label: Text(
+                      viewModel.dueDate == null
+                          ? 'Set time'
+                          : _formatTime(viewModel.dueDate!),
+                    ),
+                    style: OutlinedButton.styleFrom(minimumSize: const Size(140, 40)),
+                  ),
+                ],
               ),
               const SizedBox(height: 20),
               SizedBox(

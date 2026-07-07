@@ -24,13 +24,8 @@ void setupServiceLocator() {
   );
 
   // --- Task persistence ---
-  // Register the concrete Hive repository under its own type first,
-  // since SyncedTaskRepository needs it directly for local reads/writes.
   getIt.registerLazySingleton<HiveTaskRepository>(() => HiveTaskRepository());
 
-  // Register the concrete SyncedTaskRepository under its own type too,
-  // since AuthViewModel needs pullFromRemote(), which isn't on the
-  // abstract TaskRepository interface.
   getIt.registerLazySingleton<SyncedTaskRepository>(
     () => SyncedTaskRepository(
       getIt<HiveTaskRepository>(),

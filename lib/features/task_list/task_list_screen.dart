@@ -49,14 +49,23 @@ class _TaskListView extends StatelessWidget {
     });
   }
 
-  String? _formatDueDate(DateTime? date) {
-    if (date == null) return null;
+  String _formatDueDate(DateTime? date) {
+    if (date == null) return '';
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final dueDay = DateTime(date.year, date.month, date.day);
+    final dayDiff = dueDay.difference(today).inDays;
+
     final hour = date.hour == 0
         ? 12
         : (date.hour > 12 ? date.hour - 12 : date.hour);
     final period = date.hour >= 12 ? 'PM' : 'AM';
     final minute = date.minute.toString().padLeft(2, '0');
-    return 'Due $hour:$minute $period';
+    final time = '$hour:$minute $period';
+
+    if (dayDiff == 0) return 'Due today, $time';
+    if (dayDiff == 1) return 'Due tomorrow, $time';
+    return 'Due ${date.month}/${date.day}, $time';
   }
 
   @override
@@ -181,35 +190,10 @@ class _TaskListView extends StatelessWidget {
                               final task = viewModel.visibleTasks[index];
                               return Slidable(
                                 key: ValueKey(task.id),
-                                startActionPane: ActionPane(
+                                endActionPane: ActionPane(
                                   motion: const DrawerMotion(),
                                   extentRatio: 0.25,
                                   children: [
-                                    SlidableAction(
-                                      onPressed: (_) {
-                                        HapticFeedback.mediumImpact();
-                                        viewModel.toggleComplete(task);
-                                      },
-                                      backgroundColor: const Color(0xFF2B7A4B),
-                                      foregroundColor: Colors.white,
-                                      icon: Icons.check,
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                  ],
-                                ),
-                                endActionPane: ActionPane(
-                                  motion: const DrawerMotion(),
-                                  extentRatio: 0.5,
-                                  children: [
-                                    SlidableAction(
-                                      onPressed: (_) => viewModel.snoozeTask(task),
-                                      backgroundColor: const Color(0xFFD4880F),
-                                      foregroundColor: Colors.white,
-                                      icon: Icons.schedule,
-                                      borderRadius: const BorderRadius.horizontal(
-                                        left: Radius.circular(12),
-                                      ),
-                                    ),
                                     SlidableAction(
                                       onPressed: (_) async {
                                         HapticFeedback.heavyImpact();
@@ -223,17 +207,20 @@ class _TaskListView extends StatelessWidget {
                                       backgroundColor: const Color(0xFFE24B4A),
                                       foregroundColor: Colors.white,
                                       icon: Icons.delete_outline,
-                                      borderRadius: const BorderRadius.horizontal(
-                                        right: Radius.circular(12),
-                                      ),
+                                      borderRadius: BorderRadius.circular(12),
                                     ),
                                   ],
                                 ),
                                 child: _TaskTile(
                                   title: task.title,
-                                  energyLabel: task.energyLevel.label,
-                                  dueLabel: _formatDueDate(task.dueDate),
+                                  energyLevel: task.energyLevel,
+                                  dueLabel: task.dueDate == null
+                                      ? null
+                                      : _formatDueDate(task.dueDate),
                                   isCompleted: task.isCompleted,
+                                  isOverdue: !task.isCompleted &&
+                                      task.dueDate != null &&
+                                      task.dueDate!.isBefore(DateTime.now()),
                                   isDark: isDark,
                                   onCheck: () => viewModel.toggleComplete(task),
                                 ),
@@ -245,7 +232,7 @@ class _TaskListView extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           child: Center(
                             child: Text(
-                              '↔ Swipe right to complete · left to delete',
+                              'Swipe left to delete',
                               style: TextStyle(
                                 fontSize: 11,
                                 color: isDark
@@ -336,9 +323,10 @@ class _FilterChip extends StatelessWidget {
 
 class _TaskTile extends StatelessWidget {
   final String title;
-  final String? energyLabel;
+  final EnergyLevel? energyLevel;
   final String? dueLabel;
   final bool isCompleted;
+  final bool isOverdue;
   final bool isDark;
   final VoidCallback onCheck;
 
@@ -347,16 +335,30 @@ class _TaskTile extends StatelessWidget {
     required this.isCompleted,
     required this.isDark,
     required this.onCheck,
-    this.energyLabel,
+    this.energyLevel,
     this.dueLabel,
+    this.isOverdue = false,
   });
+
+  EnergyColorSet _colorsFor(EnergyLevel level) {
+    switch (level) {
+      case EnergyLevel.quickWin:
+        return isDark ? EnergyColors.quickWinDark : EnergyColors.quickWinLight;
+      case EnergyLevel.deepFocus:
+        return isDark ? EnergyColors.deepFocusDark : EnergyColors.deepFocusLight;
+      case EnergyLevel.lowEffort:
+        return isDark ? EnergyColors.lowEffortDark : EnergyColors.lowEffortLight;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+        color: isOverdue
+            ? (isDark ? AppColors.errorDarkBg : AppColors.errorLightBg)
+            : (isDark ? AppColors.darkSurface : AppColors.lightSurface),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -405,21 +407,22 @@ class _TaskTile extends StatelessWidget {
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    if (energyLabel != null)
+                    if (energyLevel != null)
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 8,
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFE8F5E9),
+                          color: _colorsFor(energyLevel!).bg,
                           borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: _colorsFor(energyLevel!).border),
                         ),
                         child: Text(
-                          energyLabel!,
-                          style: const TextStyle(
+                          energyLevel!.label,
+                          style: TextStyle(
                             fontSize: 11,
-                            color: Color(0xFF2E7D32),
+                            color: _colorsFor(energyLevel!).text,
                           ),
                         ),
                       ),
@@ -429,9 +432,13 @@ class _TaskTile extends StatelessWidget {
                         dueLabel!,
                         style: TextStyle(
                           fontSize: 12,
-                          color: isDark
-                              ? AppColors.darkTextMuted
-                              : AppColors.lightTextMuted,
+                          color: isOverdue
+                              ? (isDark
+                                  ? AppColors.errorDarkText
+                                  : AppColors.errorLightText)
+                              : (isDark
+                                  ? AppColors.darkTextMuted
+                                  : AppColors.lightTextMuted),
                         ),
                       ),
                     ],

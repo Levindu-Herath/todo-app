@@ -30,7 +30,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     viewModel.onPasswordChanged(_passwordController.text);
     if (!viewModel.isPasswordValid) return;
     await viewModel.signUp(_emailController.text, _passwordController.text);
-    // On success, auth-state listener wrapping the app navigates to task list.
   }
 
   @override
