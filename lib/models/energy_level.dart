@@ -1,18 +1,28 @@
+import 'package:hive/hive.dart';
+
+part 'energy_level.g.dart';
+
+@HiveType(typeId: 1)
 enum EnergyLevel {
-  low,
-  medium,
-  high,
+  @HiveField(0)
+  quickWin,
+
+  @HiveField(1)
+  deepFocus,
+
+  @HiveField(2)
+  lowEffort,
 }
 
-extension EnergyLevelX on EnergyLevel {
+extension EnergyLevelLabel on EnergyLevel {
   String get label {
     switch (this) {
-      case EnergyLevel.low:
-        return 'Low';
-      case EnergyLevel.medium:
-        return 'Medium';
-      case EnergyLevel.high:
-        return 'High';
+      case EnergyLevel.quickWin:
+        return 'Quick win';
+      case EnergyLevel.deepFocus:
+        return 'Deep focus';
+      case EnergyLevel.lowEffort:
+        return 'Low effort';
     }
   }
 }

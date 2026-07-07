@@ -1,49 +1,62 @@
-import '../features/auth/auth_viewmodel.dart';
-import '../features/settings/settings_viewmodel.dart';
-import '../features/task_form/task_form_viewmodel.dart';
-import '../features/task_list/task_list_viewmodel.dart';
-import '../features/theme/theme_viewmodel.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:get_it/get_it.dart';
+import 'package:todo_app/features/settings/settings_viewmodel.dart';
+import 'package:todo_app/features/task_form/task_form_viewmodel.dart';
+import 'package:todo_app/features/task_list/task_list_viewmodel.dart';
+import 'package:todo_app/features/theme/theme_viewmodel.dart';
+import 'package:todo_app/models/task.dart';
+import 'package:todo_app/services/preferences/preferences_service.dart';
+import 'package:todo_app/services/task/hive_task_repository.dart';
+import 'package:todo_app/services/task/synced_task_repository.dart';
+import 'package:todo_app/services/task/task_repository.dart';
 import '../services/auth/auth_repository.dart';
 import '../services/auth/firebase_auth_repository.dart';
-import '../services/biometric/biometric_service.dart';
-import '../services/preferences/preferences_service.dart';
-import '../services/task/hive_task_repository.dart';
-import '../services/task/task_repository.dart';
+import '../features/auth/auth_viewmodel.dart';
 
-class ServiceLocator {
-  ServiceLocator._();
+final getIt = GetIt.instance;
 
-  static final ServiceLocator instance = ServiceLocator._();
+void setupServiceLocator() {
+  // --- Auth ---
+  getIt.registerLazySingleton<AuthRepository>(() => FirebaseAuthRepository());
 
-  bool _initialized = false;
+  getIt.registerFactory<AuthViewModel>(
+    () => AuthViewModel(getIt<AuthRepository>()),
+  );
 
-  late final AuthRepository authRepository;
-  late final TaskRepository taskRepository;
-  late final PreferencesService preferencesService;
-  late final BiometricService biometricService;
+  // --- Task persistence ---
+  getIt.registerLazySingleton<HiveTaskRepository>(() => HiveTaskRepository());
 
-  late final AuthViewModel authViewModel;
-  late final TaskListViewModel taskListViewModel;
-  late final TaskFormViewModel taskFormViewModel;
-  late final SettingsViewModel settingsViewModel;
-  late final ThemeViewModel themeViewModel;
+  getIt.registerLazySingleton<SyncedTaskRepository>(
+    () => SyncedTaskRepository(
+      getIt<HiveTaskRepository>(),
+      FirebaseFirestore.instance,
+      getIt<AuthRepository>(),
+    ),
+  );
 
-  void initialize() {
-    if (_initialized) {
-      return;
-    }
+  // Expose the same SyncedTaskRepository instance under the abstract
+  // TaskRepository type — this is what ViewModels should depend on.
+  getIt.registerLazySingleton<TaskRepository>(
+    () => getIt<SyncedTaskRepository>(),
+  );
 
-    authRepository = FirebaseAuthRepository();
-    taskRepository = HiveTaskRepository();
-    preferencesService = PreferencesService();
-    biometricService = BiometricService();
+  getIt.registerFactory<TaskListViewModel>(
+    () => TaskListViewModel(getIt<TaskRepository>()),
+  );
 
-    authViewModel = AuthViewModel(authRepository);
-    taskListViewModel = TaskListViewModel(taskRepository);
-    taskFormViewModel = TaskFormViewModel(taskRepository);
-    settingsViewModel = SettingsViewModel(preferencesService);
-    themeViewModel = ThemeViewModel(preferencesService);
+  getIt.registerFactoryParam<TaskFormViewModel, Task?, void>(
+    (editingTask, _) =>
+        TaskFormViewModel(getIt<TaskRepository>(), editingTask: editingTask),
+  );
 
-    _initialized = true;
-  }
+  // --- Preferences & theme ---
+  getIt.registerLazySingleton<PreferencesService>(() => PreferencesService());
+
+  getIt.registerFactory<ThemeViewModel>(
+    () => ThemeViewModel(getIt<PreferencesService>()),
+  );
+
+  getIt.registerFactory<SettingsViewModel>(
+    () => SettingsViewModel(getIt<PreferencesService>(), getIt<AuthRepository>()),
+  );
 }
